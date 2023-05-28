@@ -61,3 +61,81 @@ func (g *GithubUtil) ListPublicRepository(since int64) ([]GithubProjectInfo, err
 
 	return result, nil
 }
+
+type UserInfo struct {
+	Login             string `json:"login"`
+	Id                int64  `json:"id"`
+	NodeId            string `json:"node_id"`
+	AvatarUrl         string `json:"avatar_url"`
+	GravatarId        string `json:"gravatar_id"`
+	Url               string `json:"url"`
+	HtmlUrl           string `json:"html_url"`
+	FollowersUrl      string `json:"followers_url"`
+	FollowingUrl      string `json:"following_url"`
+	GistsUrl          string `json:"gists_url"`
+	StarredUrl        string `json:"starred_url"`
+	SubscriptionsUrl  string `json:"subscriptions_url"`
+	OrganizationsUrl  string `json:"organizations_url"`
+	ReposUrl          string `json:"repos_url"`
+	EventsUrl         string `json:"events_url"`
+	ReceivedEventsUrl string `json:"received_events_url"`
+	Type              string `json:"type"`
+	SiteAdmin         bool   `json:"site_admin"`
+}
+
+func (g GithubUtil) ListUsers(since int64, page, limit int) (r []UserInfo, err error) {
+
+	opt := github.UserListOptions{
+		ListOptions: github.ListOptions{
+			Page:    page,
+			PerPage: limit,
+		},
+	}
+
+	if since != 0 {
+		opt.Since = since
+	}
+
+	data, _, err := g.client.Users.ListAll(g.ctx, &opt)
+	if err != nil {
+		return
+	}
+
+	for i := 0; i < len(data); i++ {
+		r = append(r, UserInfo{
+			Login:        data[i].GetLogin(),
+			Id:           data[i].GetID(),
+			AvatarUrl:    data[i].GetAvatarURL(),
+			FollowersUrl: data[i].GetFollowingURL(),
+			ReposUrl:     data[i].GetReposURL(),
+		})
+	}
+
+	return
+
+}
+
+func (g GithubUtil) ListFowerrs(username string, page, limit int) (r []UserInfo, err error) {
+
+	opt := github.ListOptions{
+		Page:    page,
+		PerPage: limit,
+	}
+
+	data, _, err := g.client.Users.ListFollowers(g.ctx, username, &opt)
+	if err != nil {
+		return
+	}
+
+	for i := 0; i < len(data); i++ {
+		r = append(r, UserInfo{
+			Login:        data[i].GetLogin(),
+			Id:           data[i].GetID(),
+			AvatarUrl:    data[i].GetAvatarURL(),
+			FollowersUrl: data[i].GetFollowingURL(),
+			ReposUrl:     data[i].GetReposURL(),
+		})
+	}
+
+	return
+}
